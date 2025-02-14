@@ -12,20 +12,38 @@ The findings of this study can contribute to both academic and industry discussi
 Furthermore, the automated and reproducible workflow used in this study ensures that the research process remains transparent and accessible. This not only enhances the reliability of the findings but also makes the study a valuable resource for other students, researchers, and the broader scientific community. Future studies can build upon this framework to explore additional factors influencing the renewal of TV series, contributing to a deeper understanding of decision-making in the entertainment industry.
 
 ## Data
+The data for this study was obtained from IMDb via https://developer.imdb.com/non-commercial-datasets/. This website contains seven different datasets with information from IMDb. For this study, the following four datasets were used: 'title.akas', 'title.basics', 'title.episode' and 'title.ratings'.  The following table gives an overview of all variables in the final dataset used for this study. 
+
+
+
+| Variable name 	| Variable description 		| Scale | 
+|-----------------|-----------------|-----------------|
+| tconst   				| Alphanumeric identifier of an episode  														|  Nominal 	| 
+| parentTconst    | Alphanumeric identifier of a TV series 														|  Nominal	|
+| primaryTitle    | The title used by the makers on promotional materials							|	 Nominal	| 
+| originalTitle		| The original title in the original language												| Nominal		| 
+| isAdult					|	Wheter or not the serie is an adult show (0: non-adult, 1: adult)	| Boolean		|
+| startYear				|	The release year of the title																			| Ratio			|
+| endYear					|	The final year a serie was produced																|	Ratio			|
+| Genre1					|	The first genre of the series (some series have multiple genres)	| Nominal		|
+| Genre2					| If available, the second genre of the series											| Nominal 	| 							
+| Genre3					|	If applicable, the third genre of the series											| Nominal		| 					 
+| title						|																																		| 					| 							
+| averageRating		|	The weigthed average of all individual user ratings								| Interval	| 							
+| numVotes				|	The number of votes a series has received													| Ratio			| 							
+| Renewed					| Whether the series has at least a second season (0: not renewed, 1: renewed)	| Boolean	| 					
+| Genre1_encoded	|																																		| 					| 							
+| Genre2_encoded	|																																		| 					| 							
+| Genre3_encoded	|																																		| 					| 							
 
 - What dataset(s) did you use? How was it obtained?
 - How many observations are there in the final dataset? 
 - Include a table of variable description/operstionalisation. 
 
 ## Method
-To explore these factors, we will conduct a logistic regression analysis. The renewal status will be the dependent variable, while genre, language of the title, and average rating will serve as the independent variables. According to Lee and Wang (2003), logistic regression is a useful method for analyzing binary variables because it models and predicts the probability of a specific outcome. This method is useful as it can handle both continuous and categorical predictors, making it versatile for various types of data.
+To explore influence of genre, language of the title, and average ratings on the likelihood of series renewal, we will conduct a logistic regression analysis. The renewal status will be the dependent variable, while genre, language of the title, and average rating will serve as the independent variables. According to Lee and Wang (2003), logistic regression is a useful method for analyzing binary variables because it models and predicts the probability of a specific outcome. This method is useful as it can handle both continuous and categorical predictors, making it versatile for various types of data.
 
 For deployment, the results will be communicated through a PDF report, ensuring accessibility and clarity for potential users. The structured format will effectively present conclusions, making it easy to interpret key findings.
-
- 
-
-- What methods do you use to answer your research question?
-- Provide justification for why it is the most suitable. 
 
 ## Preview of Findings 
 - Describe the gist of your findings (save the details for the final paper!)
