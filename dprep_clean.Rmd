@@ -54,6 +54,8 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(ggplot2)
   library(knitr)
+  library(tidyr)
+  
 })
 ```
 
@@ -87,7 +89,7 @@ The new dataset is called `TV_series_data`, and contains data on different TV_se
 
 
 ```{r warning=FALSE, message=FALSE}
-library(dplyr)
+
 
 # Merge episode_data with title.basics, title.akas, and title.ratings
 TV_series_data <- episode_data %>%
@@ -179,8 +181,7 @@ Genre = the genres (encoded with label encoding)
 As the genres are in a comma-separated format, we will split them into separate columns.
 
 ```{r warning=FALSE, message=FALSE}
-library(tidyr)
-library(dplyr)
+
 
 # Sample data
 
@@ -426,8 +427,6 @@ Okay so as mentioned earlier there are some NA's in the Dataset, for ones which 
 
 First let show a bar plot of all the percentage of missing values.
 ```{r}
-library(ggplot2)
-
 
 ggplot(data_types_summary, aes(x = reorder(variable, -percentage_na), y = percentage_na)) +
   geom_bar(stat = "identity") + 
@@ -443,8 +442,6 @@ ggplot(data_types_summary, aes(x = reorder(variable, -percentage_na), y = percen
 As was already evident in data_types_summary, and is visualized in the plot above, some variables have values for which all the information is missing, and thus can be removed. 
 
 ```{r}
-library(glue)
-library(dplyr)
 
 ## collecting variables for which there is no data (100 percent NA)
 all_missing_data <- data_types_summary$variable[which(data_types_summary$percentage_na == 100)]
@@ -469,8 +466,6 @@ Though we can manually code each individual plot and their NA ratios per variabl
 ## All NA plots
 
 ```{r }
-library(ggplot2)
-library(dplyr)
 
 ### values which in the summary had more than one percent NA's
 target_columns = data_types_summary$variable[which(data_types_summary$percentage_na > 1)]
@@ -513,9 +508,6 @@ Though the plots are useful, it is also useful to have the exact percentages of 
 (4) na_per_ren:percentage of NA's for which a variable is not renewed (0)
 
 ```{r}
-
-library(dplyr)
-library(knitr)
 
 
 na_summary_df <- data.frame(
@@ -570,7 +562,7 @@ kable(na_summary_df, caption = "Summary of percentage of missing variables in To
 as our research is primarily concerned with renewals,average rating, popularity (lanauge is no longer in the dataset so that cant be studied), lets remove the data for which we have NA's for average rating and popularity (num votes)
 
 ```{r}
-library(dplyr)
+
 
 TV_series_data_clean = TV_series_data_clean %>%
   filter(!is.na(averageRating) & !is.na(numVotes))
@@ -641,10 +633,6 @@ for (col in remaining_columns_sans_genre) {
 now lets look at genre. As a TV show can have several Genre tags we cannot simply plot a single variable but use pivot longer to count the percentage of occurences of a genre in total. Thus in the table below percentage indicates the percentage of times a genre is tagged in general (not the percentage of times a genre is tagged for a TV show).
 
 ```{r}
-library(dplyr)
-library(tidyr)
-library(knitr)
-
 
 
 genre_counts <- TV_series_data_clean %>%
