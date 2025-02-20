@@ -70,3 +70,18 @@ all_genres <- unique(unlist(TV_series_data_genre))
 TV_series_data_genre <- TV_series_data_genre %>%
   mutate(across(starts_with("Genre"), 
                 ~ as.numeric(factor(., levels = all_genres)), 
+                .names = "{.col}_encoded"))
+
+
+# view the mapping of each variable
+
+# Print out the mapping for each column
+factor_mapping <- sapply(TV_series_data_genre[, c("Genre1", "Genre1_encoded")], function(x) {
+  levels(factor(x))
+})
+
+print(factor_mapping)
+
+# to test wheter this is not an error, we check the original dataset where this variable was in to see if there are any values in the language column
+# as can be seen below, this is the case
+table(TV_series_data_genre$language)
