@@ -398,6 +398,75 @@ kable(data_types_numeric, caption = "Data Types Summary: Numeric Only")
 kable(data_types_char, caption = "Data Types Summary: only Characters")
 ```
 
+###### New Code from (329-399) below
+```{r}
+## Get all column names
+columns <- colnames(TV_series_data_clean)
+
+## Initialize empty lists instead of inefficient data frames
+data_types_summary_list <- list()
+data_types_numeric_list <- list()
+data_types_char_list <- list()
+
+## Mode function (Ensures it works correctly)
+getmode <- function(v) {
+  uniqv <- unique(na.omit(v)) # Remove NAs before computing mode
+  if (length(uniqv) == 0) return(NA) # Handle empty case
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+## Binary check function
+binary_check <- function(v) {
+  all(v %in% c(0, 1)) * 1 # Returns 1 if binary, else 0
+}
+
+## Loop through each column
+for (col in columns) {
+  column_data <- TV_series_data_clean[[col]]
+  column_type <- class(column_data)
+  amount_na <- mean(is.na(column_data)) * 100
+
+  ## Store data type summary
+  data_types_summary_list[[col]] <- data.frame(
+    variable = col, type = column_type, percentage_na = amount_na, stringsAsFactors = FALSE
+  )
+
+  if (is.numeric(column_data)) {
+    ## Compute numeric statistics
+    min_value <- min(column_data, na.rm = TRUE)
+    max_value <- max(column_data, na.rm = TRUE)
+    mean_value <- mean(column_data, na.rm = TRUE)
+    median_value <- median(column_data, na.rm = TRUE)
+    mode_value <- getmode(column_data)
+    binary_value <- binary_check(column_data)
+
+    ## Store numeric data
+    data_types_numeric_list[[col]] <- data.frame(
+      variable = col, minumum = min_value, maximum = max_value, 
+      average_mean = mean_value, average_median = median_value, 
+      average_mode = mode_value, binary = binary_value, stringsAsFactors = FALSE
+    )
+  } else {
+    ## Store character data summary
+    number_unique_var <- length(unique(na.omit(column_data))) # Ignore NAs
+    data_types_char_list[[col]] <- data.frame(
+      variable = col, unique_values = number_unique_var, stringsAsFactors = FALSE
+    )
+  }
+}
+
+## Convert lists to data frames
+data_types_summary <- do.call(rbind, data_types_summary_list)
+data_types_numeric <- do.call(rbind, data_types_numeric_list)
+data_types_char <- do.call(rbind, data_types_char_list)
+
+## Display results using kable
+kable(data_types_summary, caption = "Data Types Summary")
+kable(data_types_numeric, caption = "Data Types Summary: Numeric Only")
+kable(data_types_char, caption = "Data Types Summary: Only Characters")
+```
+
+
 ## variable inspection and subsequent course correction
 
 Most of the ranges in the numeric table seems to be normal, however the variable startyear has values p to 2026. This makes sense as a production might have already added a TV series to IMDB in order to add trailers, even though the show has not started airing. However, this creates an unfair bias where more recent shows will be less likely to have been renewed, through virtue of not having finished airing or having had the opportunity to renew a show. In an analysis by parrot analytics they used a range of 80 days to determine whether a show would be renewed or not (Parrot Analytics, 2023). Since this data has been updated as of March 2024, its more fair to only include data up to 2023 (to avoid recency bias)
@@ -414,10 +483,23 @@ TV_series_data_clean = TV_series_data_clean %>%
 
 ```
 
+###### New code (479-484) below
+```{r}
+TV_series_data_clean <- filter(TV_series_data_clean, startYear < 2024)
+
+```
+
+
 ```{r}
 
 TV_series_data_clean = TV_series_data_clean %>%
   select(-isOriginalTitle, -types)
+
+```
+
+###### New code (493-498) below
+```{r}
+TV_series_data_clean <- TV_series_data_clean[, !(names(TV_series_data_clean) %in% c("isOriginalTitle", "types"))]
 
 ```
 
@@ -432,12 +514,11 @@ ggplot(data_types_summary, aes(x = reorder(variable, -percentage_na), y = percen
   geom_bar(stat = "identity") + 
   labs(title = "NA vs Non-NA Values for All Columns",
        x = "Type variable",
-       y = "Percentage of na values") +
+       y = "Percentage of NA values") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) 
 
 ```
-
 
 As was already evident in data_types_summary, and is visualized in the plot above, some variables have values for which all the information is missing, and thus can be removed. 
 
@@ -457,6 +538,24 @@ TV_series_data_clean <- TV_series_data_clean %>%
 
 
 ```
+
+###### New code (525-540) below
+```{r}
+## Collect variables with 100% missing data
+all_missing_data <- data_types_summary$variable[data_types_summary$percentage_na == 100]
+
+# Print missing variables
+if (length(all_missing_data) > 0) {
+  glue("Missing all data for: {paste(all_missing_data, collapse = ', ')}")
+} else {
+  glue("No variables are completely missing data.")
+}
+
+## Remove columns with 100% missing data
+TV_series_data_clean <- TV_series_data_clean[, !names(TV_series_data_clean) %in% all_missing_data]
+
+```
+
 ## Looking at our NA distribution before removing it
 HOw our NA's are distributed among the independent variable is of relevance to our analysis. After all, if we find Na's to be much more present in either conditions, the analysis performed might be limited by data storage or collection practices done by IMDB.
 
@@ -500,6 +599,35 @@ for (col in target_columns) {
 
 ```
 
+###### New code (567-600) below
+```{r}
+# Identify target columns with >1% NA values
+target_columns <- data_types_summary %>%
+  filter(percentage_na > 1) %>%
+  pull(variable) %>%
+  intersect(names(TV_series_data_clean)) %>%
+  setdiff(c("startYear", "title"))  # Exclude specific columns
+
+# Generate plots for each target column
+plots <- lapply(target_columns, function(col) {
+  ggplot(TV_series_data_clean, aes(x = factor(Renewed), fill = factor(is.na(.data[[col]])))) +
+    geom_bar(position = "dodge") +
+    labs(
+      title = paste("Comparison of NA vs. Non-NA in", col, "and TV Show Renewal"),
+      x = "Renewal Status",
+      y = "Count",
+      fill = "Category"
+    ) +
+    scale_fill_manual(values = c("TRUE" = "red", "FALSE" = "blue"),
+                      labels = c(paste(col, "Data Available"), paste(col, "Data Missing"))) +
+    theme_minimal()
+})
+
+# Print all plots
+print(plots)
+```
+
+
 ## A table Summary With all the NAs
 Though the plots are useful, it is also useful to have the exact percentages of the NAs for both renewed conditions to just see how much data is missing relatively (and not in terms of count). This has been added below using the table as follows:
 (1) Variable: Name of variable
@@ -541,6 +669,25 @@ kable(na_summary_df, caption = "Summary of percentage of missing variables in To
 
 
 ```
+
+###### New code (638-671) below
+```{r}
+# Compute NA percentages for total, renewed, and not renewed
+na_summary_df <- target_columns %>%
+  map_dfr(~ {
+    col <- .x
+    total_na <- mean(is.na(TV_series_data_clean[[col]])) * 100
+    na_renewed <- mean(is.na(TV_series_data_clean[[col]])[TV_series_data_clean$Renewed == 1]) * 100
+    na_not_renewed <- mean(is.na(TV_series_data_clean[[col]])[TV_series_data_clean$Renewed == 0]) * 100
+    
+    tibble(Variable = col, na_perc_total = total_na, na_perc_ren = na_renewed, na_perc_not_ren = na_not_renewed)
+  })
+
+# Display the result
+kable(na_summary_df, caption = "Summary of percentage of missing values in Total and Renewal Conditions")
+
+```
+
 
 ## Interpretation of the NA values
 
@@ -621,6 +768,71 @@ for (col in remaining_columns_sans_genre) {
 
 ```
 
+###### New code (728-769) below (#1) -> Idk which one is best, see the following code
+```{r}
+# Define numeric variables of interest
+remaining_columns_sans_genre <- c("isAdult", "startYear", "endYear", "averageRating", "numVotes", "Renewed")
+
+# Filter numeric variables from the summary table
+numeric_vars <- data_types_summary %>%
+  filter(variable %in% remaining_columns_sans_genre, type == "numeric") %>%
+  pull(variable)
+
+# Generate plots based on binary classification
+plots <- lapply(numeric_vars, function(col) {
+  is_binary <- data_types_numeric %>%
+    filter(variable == col) %>%
+    pull(binary) %>%
+    as.logical()
+  
+  if (is_binary) {
+    barplot(table(TV_series_data_clean[[col]]),
+            main = paste("Barplot of", col),
+            xlab = col, ylab = "Count",
+            col = c("red", "green"))
+  } else {
+    boxplot(TV_series_data_clean[[col]], main = paste("Boxplot of", col), ylab = col)
+  }
+})
+
+# Print all plots
+print(plots)
+```
+###### New code (728-769) below (#2) -> Idk which one is best
+```{r}
+# Define numeric variables of interest
+remaining_columns_sans_genre <- c("isAdult", "startYear", "endYear", "averageRating", "numVotes", "Renewed")
+
+# Filter numeric variables from the summary table
+numeric_vars <- data_types_summary %>%
+  filter(variable %in% remaining_columns_sans_genre, type == "numeric") %>%
+  pull(variable)
+
+# Generate and print plots using ggplot2
+for (col in numeric_vars) {
+  is_binary <- data_types_numeric %>%
+    filter(variable == col) %>%
+    pull(binary) %>%
+    as.logical()
+  
+  plot <- if (is_binary) {
+    ggplot(TV_series_data_clean, aes(x = as.factor(.data[[col]]))) +
+      geom_bar(fill = c("red", "green")) +
+      labs(title = paste("Barplot of", col), x = col, y = "Count") +
+      theme_minimal()
+  } else {
+    ggplot(TV_series_data_clean, aes(y = .data[[col]])) +
+      geom_boxplot(fill = "blue", alpha = 0.5) +
+      labs(title = paste("Boxplot of", col), y = col) +
+      theme_minimal()
+  }
+  
+  print(plot)  # Ensure each plot is displayed properly
+}
+
+```
+
+
 ### interpretation of plots:
 (1) barplot isAdult: Is is clearly evident that the number of TV-series that have an adult rating is significantly smaller than those who do not have an adult rating
 (2) Startyear: there are significant more TV-series that have started airing in the early to late 2000s than the late 1900 (Negatively skewed). This makes sense as IMDB has only been around since 1990, and showrunners from that time might be less concerned about adding their tv Show. Moreover, given IMDBs recent popularity, this might also be considered a birgger priority for current shows. 
@@ -649,6 +861,21 @@ genre_counts = genre_counts %>%
 kable(genre_counts, caption = "Frequency of Genres occurences in our dataset")
 ```
 
+###### New code (847-862) below
+```{r}
+# Count occurrences of each genre
+genre_counts <- TV_series_data_clean %>%
+  select(Genre1, Genre2, Genre3) %>%
+  pivot_longer(everything(), names_to = "Genre_Type", values_to = "Genre") %>%
+  drop_na() %>%
+  count(Genre, sort = TRUE) %>%
+  mutate(percentage = (n / sum(n)) * 100)
+
+# Display the result
+kable(genre_counts, caption = "Frequency of Genre Occurrences in Dataset")
+
+```
+
 
 as is evident from the table and the graph below, the most common genre is comedy, and drama, whereas western, war and musical are less popular
 ```{r}
@@ -660,5 +887,15 @@ ggplot(genre_counts, aes(x = reorder(Genre, -n), y = n, fill = Genre)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   guides(fill = "none") 
 
+```
+
+###### New code (881-890) below
+```{r}
+ggplot(genre_counts, aes(x = reorder(Genre, -n), y = n, fill = Genre)) +
+  geom_col() +
+  labs(title = "TV Genre Distribution", x = "Genres", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  guides(fill = "none")
 ```
 
