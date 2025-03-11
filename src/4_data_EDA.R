@@ -1,3 +1,18 @@
+# Step 4: Exploratory Data Analysis
+
+# load libraries
+library(tidyverse)
+library(knitr)
+library(glue)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(tidyr)
+
+# load the dataset
+TV_series_data_clean <- read_csv("../../gen/data-preparation/output/TV_series_data_clean.csv", col_types = cols(), fileEncoding = "UTF-8")
+
+
 ## Plotting our variables (numeric)
 # Now that we have a Dataset where all the NA values are removed, lets plot the different variables. 
 #For our numeric variables we are going to be using Barplots and Boxplots. For variables that only have a value of  0 or 1 (binary or boolean), 
@@ -93,3 +108,7 @@ genre_counts <- TV_series_data_clean %>%
 kable(genre_counts, 
       col.names = c("Genre", "number of times observed", "percentage"),
       caption = "Fig19: Frequency of Genre Occurrences in Dataset")
+
+
+# save the dataset
+write_csv(TV_series_data_clean, "../../gen/data-preparation/output/TV_series_data_final.csv", col_types = cols(), fileEncoding = "UTF-8")
