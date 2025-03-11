@@ -99,3 +99,18 @@ if (n_datasets == 4) {
   print("an error occured, check again if all datasets are downlaoaded correctly")
 }
 
+
+#1.4 Save the data as a CSV file
+# Create directories to save data
+dir.create('../../gen')
+dir.create('../../gen/data-preparation')
+dir.create('../../gen/data-preparation/input')
+
+# Save the data as a CSV file
+write.csv(akas_data, file = "../../gen/data-preparation/input/akas_data.csv", fileEncoding = "UTF-8",row.names=FALSE )
+write.csv(basics_data, file = "../../gen/data-preparation/input/basics_data.csv", fileEncoding = "UTF-8",row.names=FALSE )
+write.csv(episode_data, file = "../../gen/data-preparation/input/episode_data.csv", fileEncoding = "UTF-8",row.names=FALSE )
+write.csv(ratings_data, file = "../../gen/data-preparation/input/ratings_data.csv", fileEncoding = "UTF-8",row.names=FALSE )
+
+
+
