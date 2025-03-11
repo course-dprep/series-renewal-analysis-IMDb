@@ -1,5 +1,24 @@
 # Step 2: data construction
 
+
+# Load the necessary libraries
+
+library(tidyverse)
+library(knitr)
+library(glue)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(tidyr)
+
+
+#2.0 load the datasets
+episode_data <- read_csv("../../gen/data-preparation/input/episode_data.csv", col_types = cols(), fileEncoding = "UTF-8")
+basics_data <- read_csv("../../gen/data-preparation/input/basics_data.csv", col_types = cols(), fileEncoding = "UTF-8")
+akas_data <- read_csv("../../gen/data-preparation/input/akas_data.csv", col_types = cols(), fileEncoding = "UTF-8")
+ratings_data <- read_csv("../../gen/data-preparation/input/ratings_data.csv", col_types = cols(), fileEncoding = "UTF-8")
+
+
 #2.1 merge the datasets
 
 # Merge episode_data with title.basics, title.akas, and title.ratings
@@ -82,4 +101,12 @@ rm(episode_data)
 rm(ratings_data)
 rm(TV_series_data)
 
+
+#2.6 save the dataset
+
+# Create directory for saving data
+dir.create('../../gen/data-preparation/output')
+
+# save to csv
+write_csv(TV_series_data_genre, "../../gen/data-preperation/output/TV_series_data_genre.csv", fileEncoding = "UTF-8",row.names=FALSE)
 

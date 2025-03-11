@@ -1,5 +1,15 @@
 # Data cleaning and EDA
 
+# load libraries
+library(tidyverse)
+library(knitr)
+library(glue)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(tidyr)
+
+
 
 ## Variables that are available
 # In our dataset we have several variables available to us. In order to conduct 
@@ -90,9 +100,14 @@
 #   the summary and glimpse per review. We have already removes some columns that
 #   are no longer relevant. At this point in time we are keeping variables such as 
 #   whether the tv show is targeted towards adults or not since we might want to 
-#   use them later for a predictive analysis (possiby).
+#   use them later for a predictive analysis (possibly).
 
 
+# Load the data
+TV_series_data_genre = read_csv("../../gen/data-preperation/output/TV_series_data_genre.csv", col_types = cols(), fileEncoding = "UTF-8")
+
+
+# Get a quick overview of the data
 summary(TV_series_data_genre)
 TV_series_data_clean = TV_series_data_genre %>%
   select(c(-seasonNumber, -titleType, -attributes, -runtimeMinutes, 
@@ -415,3 +430,9 @@ TV_series_data_clean = TV_series_data_clean %>%
 head(TV_series_data_clean)
 
 rm(TV_series_data_genre)
+
+
+
+# Save the data
+
+write_csv(TV_series_data_clean, "../../gen/data-preperation/output/TV_series_data_clean.csv")
