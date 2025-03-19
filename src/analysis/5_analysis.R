@@ -23,8 +23,8 @@ TV_series_data_clean$Genre3_encoded <- as.numeric(as.character(TV_series_data_cl
 
 # Logistic regression model
 log_reg <- glm(Renewed ~ isAdult + startYear + endYear + Genre1_encoded + + Genre2_encoded + Genre3_encoded + averageRating + numVotes,
-               data = TV_series_data_clean, 
-               family = binomial)
+             data = TV_series_data_clean, 
+             family = binomial)
 
 # Summary of the model
 summary(log_reg)
