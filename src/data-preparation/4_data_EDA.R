@@ -1,5 +1,8 @@
 # Step 4: Exploratory Data Analysis
+<<<<<<< HEAD
 print("starting script 4")
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 
 # load libraries
 library(tidyverse)
@@ -12,6 +15,7 @@ library(tidyr)
 
 # load the dataset
 TV_series_data_clean <- read_csv("gen/data-preparation/output/TV_series_data_clean.csv")
+
 
 
 ## Plotting our variables (numeric)
@@ -113,3 +117,4 @@ kable(genre_counts,
 
 # save the dataset
 write_csv(TV_series_data_clean, "gen/data-preparation/output/TV_series_data_final.csv")
+

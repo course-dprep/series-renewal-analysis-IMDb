@@ -3,6 +3,8 @@ print("make directories")
 dir.create('gen')
 dir.create('gen/data-preparation')
 dir.create('gen/data-preparation/input')
+
+
 # We will load the needed data files from the internet. 
 # It is all information that is not to do with the people that work on the 
 # movies/series, but rather the characteristics of the movies/series themselves
@@ -58,6 +60,7 @@ write.csv(akas_data, file = "gen/data-preparation/input/akas_data.csv", fileEnco
 write.csv(basics_data, file = "gen/data-preparation/input/basics_data.csv", fileEncoding = "UTF-8",row.names=FALSE )
 write.csv(episode_data, file = "gen/data-preparation/input/episode_data.csv", fileEncoding = "UTF-8",row.names=FALSE )
 write.csv(ratings_data, file = "gen/data-preparation/input/ratings_data.csv", )
+
 print("csvs succesfully save")
 
 

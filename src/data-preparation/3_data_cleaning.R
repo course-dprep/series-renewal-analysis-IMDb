@@ -1,5 +1,9 @@
 # Data cleaning and EDA
+<<<<<<< HEAD
 print("starting script 3")
+=======
+
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 # load libraries
 library(tidyverse)
 library(knitr)
@@ -102,9 +106,16 @@ library(tidyr)
 #   whether the tv show is targeted towards adults or not since we might want to 
 #   use them later for a predictive analysis (possibly).
 
+<<<<<<< HEAD
 # Load the data
 TV_series_data_genre = read_csv("gen/data-preparation/output/TV_series_data_genre.csv")
 print("TV_series_data_genre downloaded")
+=======
+
+# Load the data
+TV_series_data_genre = read_csv("../../gen/data-preperation/output/TV_series_data_genre.csv", col_types = cols(), fileEncoding = "UTF-8")
+
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 
 # Get a quick overview of the data
 summary(TV_series_data_genre)
@@ -177,8 +188,11 @@ binary_check = function(v) {
 }
 
 
+<<<<<<< HEAD
 columns = colnames(TV_series_data_clean)
 
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 for (col in columns) {
   
   column_type = class(TV_series_data_clean[[col]])
@@ -382,8 +396,11 @@ for (col in target_columns) {
   ))
 }
 
+<<<<<<< HEAD
 print("now we have na summary")
 
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 # Print final dataframe
 kable(na_summary_df, 
       col.names = c("variabe name", "na % total", "na % in renewals", "na % in non renewals"),
@@ -425,11 +442,16 @@ kable(na_summary_df,
 # as our research is primarily concerned with renewals,average rating, popularity 
 # (lanauge is no longer in the dataset so that cant be studied), lets remove the 
 # data for which we have NA's for average rating and popularity (num votes)
+<<<<<<< HEAD
 print("now filtering NAs")
+=======
+
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 
 TV_series_data_clean = TV_series_data_clean %>%
   filter(!is.na(averageRating) & !is.na(numVotes))
 
+<<<<<<< HEAD
 print(head(TV_series_data_clean))
 
 
@@ -441,10 +463,17 @@ num_rows <- 10
 
 
 # Print the DataFrame
+=======
+head(TV_series_data_clean)
+
+rm(TV_series_data_genre)
+
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 
 
 # Save the data
 
+<<<<<<< HEAD
 write_csv(TV_series_data_clean, "gen/data-preparation/output/TV_series_data_clean.csv")
 
 

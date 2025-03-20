@@ -99,7 +99,6 @@ print(factor_mapping)
 
 
 
-
 #2.6 save the dataset
 
 # Create directory for saving data
@@ -107,4 +106,3 @@ dir.create('gen/data-preparation/output')
 
 # save to csv
 write_csv(TV_series_data_genre, "gen/data-preparation/output/TV_series_data_genre.csv")
-

@@ -42,8 +42,11 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(kableExtra)
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 ```
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
@@ -60,6 +63,7 @@ head(TV_series_data_clean)
 
 ```
 
+<<<<<<< HEAD
 ```{r}
 data_types_summary = data.frame(variable = character(), type = character(), 
                                 percentage_na = character(), stringsAsFactors = FALSE)
@@ -158,6 +162,8 @@ kable(data_types_char,
 
 
 
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 # Define the remaining numerical columns
 
@@ -196,9 +202,12 @@ par(mfrow=c(1, 1))
 
 
 ```
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 ## Interpretation of the plots
 The analysis of the TV-series data reveals several interesting patterns:
 isAdult: The bar plot clearly shows that the number of TV series with an adult rating is significantly smaller than those without. This suggests that adult-themed shows are relatively rare compared to general audience shows.
@@ -247,6 +256,7 @@ As shown in the graph, the most common genres are Comedy and Drama, which are cl
 
 
 ## Data Analysis
+<<<<<<< HEAD
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 
 
@@ -290,6 +300,8 @@ dwtest(log_reg)
 
 ```
 
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 To explore which variables influence series renewal a logistic regression was performed. 
 First the assumptions of the model are tested. To assess whether the independence assumption holds, a Durbin-Watson test was conducted to detect autocorrelation in the regression residuals. For multicollinearity concerns, a Variance Inflation Factor (VIF) test was performed. The results indicate that startYear and endYear have VIF values greater than 10, suggesting severe multicollinearity. This implies that these variables are highly correlated, and it may have been beneficial to combine them into a single feature. Meanwhile, all other predictors have VIF values below 5, meaning that while some correlation exists between independent variables, it does not reach a level that would severely distort the regression model’s estimates.
 
