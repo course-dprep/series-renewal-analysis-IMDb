@@ -11,12 +11,16 @@ library(readr)
 library(dplyr)
 library(tidyr)
 
+library(conflicted)
+
+conflict_prefer("filter", "dplyr")
+conflict_prefer("lag", "dplyr")
 
 #2.0 load the datasets
-episode_data <- read_csv("../../gen/data-preparation/input/episode_data.csv", col_types = cols(), fileEncoding = "UTF-8")
-basics_data <- read_csv("../../gen/data-preparation/input/basics_data.csv", col_types = cols(), fileEncoding = "UTF-8")
-akas_data <- read_csv("../../gen/data-preparation/input/akas_data.csv", col_types = cols(), fileEncoding = "UTF-8")
-ratings_data <- read_csv("../../gen/data-preparation/input/ratings_data.csv", col_types = cols(), fileEncoding = "UTF-8")
+episode_data <- read_csv("gen/data-preparation/input/episode_data.csv", col_types = cols())
+basics_data <- read_csv("gen/data-preparation/input/basics_data.csv", col_types = cols())
+akas_data <- read_csv("gen/data-preparation/input/akas_data.csv", col_types = cols())
+ratings_data <- read_csv("gen/data-preparation/input/ratings_data.csv", col_types = cols())
 
 
 #2.1 merge the datasets
@@ -93,20 +97,12 @@ factor_mapping <- sapply(TV_series_data_genre[, c("Genre1", "Genre1_encoded")], 
 
 print(factor_mapping)
 
-#2.5 remove datasets that are not being used
-rm(raw_data_info)
-rm(akas_data)
-rm(basics_data)
-rm(episode_data)
-rm(ratings_data)
-rm(TV_series_data)
 
 
 #2.6 save the dataset
 
 # Create directory for saving data
-dir.create('../../gen/data-preparation/output')
+dir.create('gen/data-preparation/output')
 
 # save to csv
-write_csv(TV_series_data_genre, "../../gen/data-preperation/output/TV_series_data_genre.csv", fileEncoding = "UTF-8",row.names=FALSE)
-
+write_csv(TV_series_data_genre, "gen/data-preparation/output/TV_series_data_genre.csv")

@@ -42,6 +42,11 @@ library(readr)
 library(dplyr)
 library(tidyr)
 library(kableExtra)
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 ```
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
@@ -58,6 +63,107 @@ head(TV_series_data_clean)
 
 ```
 
+<<<<<<< HEAD
+```{r}
+data_types_summary = data.frame(variable = character(), type = character(), 
+                                percentage_na = character(), stringsAsFactors = FALSE)
+data_types_numeric = data.frame(variable = character(), minimum = numeric(), 
+                                maximum = numeric(), average_mean = numeric(), 
+                                average_median = numeric(), average_mode = numeric(), 
+                                binary = numeric(), stringsAsFactors = FALSE)
+data_types_char = data.frame(variable = character(), unique_values = character(), 
+                             stringsAsFactors = FALSE)
+```
+
+
+```{r}
+## We could not find a mode average function in r so we got this one from online 
+## https://www.tutorialspoint.com/r/r_mean_median_mode.htm 
+
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+## Create a function whether a variable is binary (either true or false)
+
+binary_check = function(v) {
+  if (all(v %in% c(0, 1))) {
+  return(1)
+  } else { 
+  return(0)
+    }
+  
+}
+
+
+columns = colnames(TV_series_data_clean)
+
+for (col in columns) {
+  
+  column_type = class(TV_series_data_clean[[col]])
+  amount_na = (mean(is.na(TV_series_data_clean[[col]]))) * 100
+  
+  ## df1: The type of data from our main dataframe
+  data_types_summary <- rbind(data_types_summary, data.frame(variable = col, type = column_type, percentage_na = amount_na, stringsAsFactors = FALSE))
+  
+  if (column_type == "numeric") {
+    
+    ## DF2: if a value is numeric the min and max value will be collected for this variable 
+    min_value = min(TV_series_data_clean[[col]], na.rm = T)
+    max_value = max(TV_series_data_clean[[col]], na.rm = T)
+    mean_value =  mean(TV_series_data_clean[[col]], na.rm = T)
+    median_value = median(TV_series_data_clean[[col]], na.rm = T)
+    mode_value = getmode(TV_series_data_clean[[col]])
+    binary_value = binary_check(TV_series_data_clean[[col]])
+
+    
+    data_types_numeric <- rbind(data_types_numeric, data.frame(variable = col, minumum = min_value, maximum = max_value, average_mean = mean_value, average_median = median_value, average_mode = mode_value, binary = binary_value, stringsAsFactors = FALSE))
+    
+  } else {
+    
+    ## DF3: if a value is not numeric it has to be character so the number of NAs are collected 
+    number_unique_var = length(unique(TV_series_data_clean[[col]]))
+
+    data_types_char <- rbind(data_types_char, data.frame(variable = col, unique_values = number_unique_var, stringsAsFactors = FALSE))
+    
+  }
+  
+  
+}
+```
+
+
+```{r}
+### create a figure with variable type, datatype and percentage na
+kable(data_types_summary, 
+      col.names = c("Variable name", "type", "percentage na"), 
+      caption = "Fig2: Overview of all variables in merged dataframe")
+
+
+
+```
+
+
+```{r}
+### create a figure with an overview of all numeric figures
+kable(data_types_numeric, 
+      col.names = c("variable name", "lowest value", "highest value", "average (mean)", "average (median)", "average (mode)", "is binary?"),
+      caption = "Fig3: Data Types Summary: Numeric Only")
+```
+
+
+```{r}
+### create a figure for character variable with numer of unique values
+kable(data_types_char, 
+      col.names = c("variable name", "number unique values"),
+      caption = "Fig4: Data Types Summary: only Characters")
+```
+
+
+
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 # Define the remaining numerical columns
 
@@ -96,6 +202,12 @@ par(mfrow=c(1, 1))
 
 
 ```
+<<<<<<< HEAD
+
+
+
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 ## Interpretation of the plots
 The analysis of the TV-series data reveals several interesting patterns:
 isAdult: The bar plot clearly shows that the number of TV series with an adult rating is significantly smaller than those without. This suggests that adult-themed shows are relatively rare compared to general audience shows.
@@ -144,6 +256,52 @@ As shown in the graph, the most common genres are Comedy and Drama, which are cl
 
 
 ## Data Analysis
+<<<<<<< HEAD
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+
+setDT(TV_series_data_clean)
+
+# Convert the binary variable (isAdult) and encoded genre columns to factors if necessary
+TV_series_data_clean[, isAdult := as.factor(isAdult)]  # Make sure isAdult is treated as a factor
+TV_series_data_clean[, Genre1_encoded := as.factor(Genre1_encoded)]
+TV_series_data_clean[, Genre2_encoded := as.factor(Genre2_encoded)]
+TV_series_data_clean[, Genre3_encoded := as.factor(Genre3_encoded)]
+
+# Change averageRating, Genre1_encoded, Genre2_encoded and Genre3_encoded to numeric
+TV_series_data_clean$averageRating <- as.numeric(as.character(TV_series_data_clean$averageRating))
+TV_series_data_clean$Genre1_encoded <- as.numeric(as.character(TV_series_data_clean$Genre1_encoded))
+TV_series_data_clean$Genre2_encoded <- as.numeric(as.character(TV_series_data_clean$Genre2_encoded))
+TV_series_data_clean$Genre3_encoded <- as.numeric(as.character(TV_series_data_clean$Genre3_encoded))
+
+# Logistic regression model
+log_reg <- glm(Renewed ~ isAdult + startYear + endYear + Genre1_encoded + + Genre2_encoded + Genre3_encoded + averageRating + numVotes,
+             data = TV_series_data_clean, 
+             family = binomial)
+
+
+
+
+# Independence
+library(lmtest)
+dwtest(log_reg)
+
+# Multicollinearity  (vif)
+library(car)
+vif(log_reg)
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Summary of the model
+summary(log_reg)
+vif(log_reg)
+dwtest(log_reg)
+
+```
+
+=======
+>>>>>>> 456c1027af2bbd53c348497c0dbaf53bf88f511d
 To explore which variables influence series renewal a logistic regression was performed. 
 First the assumptions of the model are tested. To assess whether the independence assumption holds, a Durbin-Watson test was conducted to detect autocorrelation in the regression residuals. For multicollinearity concerns, a Variance Inflation Factor (VIF) test was performed. The results indicate that startYear and endYear have VIF values greater than 10, suggesting severe multicollinearity. This implies that these variables are highly correlated, and it may have been beneficial to combine them into a single feature. Meanwhile, all other predictors have VIF values below 5, meaning that while some correlation exists between independent variables, it does not reach a level that would severely distort the regression model’s estimates.
 
