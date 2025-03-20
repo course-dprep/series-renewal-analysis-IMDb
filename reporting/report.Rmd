@@ -1,2 +1,307 @@
-# You can use this file (or similar ones) to work on a report. 
-# Of course, you need to replace them with actual RMarkdown files eventually.
+---
+title: "Report IMDB data analysis"
+author: "Team 1"
+date: "20-03-2025"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Motivation
+The renewal of a TV series for a second season is a multifaceted decision shaped by several factors. Traditionally, networks and streaming platforms have relied on audience viewership, critical perception, and financial considerations to determine whether a show continues. However, with the expansion of streaming services and globalization of content, additional factors may now influence these decisions.
+  The goal of this research is to explore which factors influence the likelihood of renewal of a series for a second season. While this is an exploratory analysis, there are two factors that are expected to have a big impact on the renewal chances: genre and average ratings.
+The genre of a TV show is expected to have a big impact on renewal likelihood, as certain genres are more popular than others and attract loyal audiences. For instance, crime dramas and reality TV have historically shown strong audience retention, making them more likely to be renewed (What’s Behind a Show Renewal, n.d.-b). On the other hand, niche or experimental genres with smaller followings may struggle to secure additional seasons, regardless of critical acclaim. Recognizing which genres have a higher likelihood of renewal can help producers and platforms optimize their content strategies.
+  Moreover, average ratings are frequently considered a key factor in renewal decisions. High ratings generally indicate strong audience engagement, suggesting that a show is well-received and likely to perform well in future seasons (Analyzing TV Ratings Systems - Examining the Influence of Viewership Data on Show Renewals | Common Good Ventures, 2001). However, the correlation between ratings and renewal is complex, as other factors – such as production costs, competition, and strategic objectives of the platform – can also influence the final decision. 
+  Based on these factors, the question arises to which factors in general influence the likelihood of series renewal, and in particular to what extent genre popularity and average ratings influence this likelihood.
+  The findings of this study can contribute to both academic and industry discussions by shedding light on the key factors that influence TV series renewal decisions. By identifying patterns in these decisions, this research can assist content creators, streaming platforms, and production companies in making more strategic and data-driven choices regarding future productions. Understanding these trends can also help media executives allocate resources more effectively and develop content that aligns with audience preferences.
+  Furthermore, the automated and reproducible workflow used in this study ensures that the research process remains transparent and accessible. This not only enhances the reliability of the findings but also makes the study a valuable resource for other students, researchers, and the broader scientific community. Future studies can build upon this framework to explore additional factors influencing the renewal of TV series, contributing to a deeper understanding of decision-making in the entertainment industry.
+  
+## Data 
+The data for this study was obtained from IMDb via https://developer.imdb.com/non-commercial-datasets/. This website contains seven different datasets with information from IMDb. For this study, the following four datasets were used: 'title.akas', 'title.basics', 'title.episode' and 'title.ratings'.  
+None of the information that is being collected contains sensitive information about people for example, as we only collect information about the series themselves, like release year or genre. 
+
+## Methodology
+To explore what factors influence the likelihood of series renewal, we will conduct a logistic regression analysis. The renewal status will be the dependent variable, while isAdult, startYear, endYear, Genre1_encoded, Genre2_encoded, Genre3_encoded, averageRating and numVotes are the independent variables. These are either numerical or dummy encoded. According to Lee and Wang (2003), logistic regression is a useful method for analyzing binary variables, which is our dependent variable, because it models and predicts the probability of a specific outcome. This method is useful as it can handle both continuous and categorical predictors, making it versatile for various types of data.
+
+
+## New dataset construction
+Before performing logistic regression, the data collected from IMDb needs to be cleaned. The first step is merging four different data sets into a single one using the unique series IDs present in all of them. This new, complete data set is then enhanced by adding a "renewed" variable, which indicates whether a series was renewed for a second season. Additionally, the "genre" variable is split into three separate variables, as each series originally had multiple genres, but now each variable represents a single genre.
+  Next, unnecessary variables are removed from the data set, along with those that contain only NA values. Data points with missing values for both the average rating and the number of votes are also discarded, as these are key indicators for the regression analysis.
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# load libraries
+library(tidyverse)
+library(knitr)
+library(glue)
+library(ggplot2)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+
+
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# load the dataset
+
+TV_series_data_clean <- read_csv("gen/data-preparation/output/TV_series_data_clean.csv", col_types = cols())
+
+```
+
+Below you can see the first rows of the final data set we used to answer our research question. 
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+head(TV_series_data_clean)
+
+```
+
+```{r}
+data_types_summary = data.frame(variable = character(), type = character(), 
+                                percentage_na = character(), stringsAsFactors = FALSE)
+data_types_numeric = data.frame(variable = character(), minimum = numeric(), 
+                                maximum = numeric(), average_mean = numeric(), 
+                                average_median = numeric(), average_mode = numeric(), 
+                                binary = numeric(), stringsAsFactors = FALSE)
+data_types_char = data.frame(variable = character(), unique_values = character(), 
+                             stringsAsFactors = FALSE)
+```
+
+
+```{r}
+## We could not find a mode average function in r so we got this one from online 
+## https://www.tutorialspoint.com/r/r_mean_median_mode.htm 
+
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+## Create a function whether a variable is binary (either true or false)
+
+binary_check = function(v) {
+  if (all(v %in% c(0, 1))) {
+  return(1)
+  } else { 
+  return(0)
+    }
+  
+}
+
+
+columns = colnames(TV_series_data_clean)
+
+for (col in columns) {
+  
+  column_type = class(TV_series_data_clean[[col]])
+  amount_na = (mean(is.na(TV_series_data_clean[[col]]))) * 100
+  
+  ## df1: The type of data from our main dataframe
+  data_types_summary <- rbind(data_types_summary, data.frame(variable = col, type = column_type, percentage_na = amount_na, stringsAsFactors = FALSE))
+  
+  if (column_type == "numeric") {
+    
+    ## DF2: if a value is numeric the min and max value will be collected for this variable 
+    min_value = min(TV_series_data_clean[[col]], na.rm = T)
+    max_value = max(TV_series_data_clean[[col]], na.rm = T)
+    mean_value =  mean(TV_series_data_clean[[col]], na.rm = T)
+    median_value = median(TV_series_data_clean[[col]], na.rm = T)
+    mode_value = getmode(TV_series_data_clean[[col]])
+    binary_value = binary_check(TV_series_data_clean[[col]])
+
+    
+    data_types_numeric <- rbind(data_types_numeric, data.frame(variable = col, minumum = min_value, maximum = max_value, average_mean = mean_value, average_median = median_value, average_mode = mode_value, binary = binary_value, stringsAsFactors = FALSE))
+    
+  } else {
+    
+    ## DF3: if a value is not numeric it has to be character so the number of NAs are collected 
+    number_unique_var = length(unique(TV_series_data_clean[[col]]))
+
+    data_types_char <- rbind(data_types_char, data.frame(variable = col, unique_values = number_unique_var, stringsAsFactors = FALSE))
+    
+  }
+  
+  
+}
+```
+
+
+```{r}
+### create a figure with variable type, datatype and percentage na
+kable(data_types_summary, 
+      col.names = c("Variable name", "type", "percentage na"), 
+      caption = "Fig2: Overview of all variables in merged dataframe")
+
+
+
+```
+
+
+```{r}
+### create a figure with an overview of all numeric figures
+kable(data_types_numeric, 
+      col.names = c("variable name", "lowest value", "highest value", "average (mean)", "average (median)", "average (mode)", "is binary?"),
+      caption = "Fig3: Data Types Summary: Numeric Only")
+```
+
+
+```{r}
+### create a figure for character variable with numer of unique values
+kable(data_types_char, 
+      col.names = c("variable name", "number unique values"),
+      caption = "Fig4: Data Types Summary: only Characters")
+```
+
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Define the remaining numerical columns
+
+# Set up a 2x3 grid (2 rows and 3 columns) for the plots on one page
+par(mfrow=c(2, 3))  # Adjust this to the number of plots you have
+
+remaining_columns_sans_genre = c("isAdult", "startYear", "endYear", "averageRating", "numVotes", "Renewed")
+fig_number = 1
+
+for (col in remaining_columns_sans_genre) {
+  # Check if the column exists and is numeric
+  if (is.numeric(TV_series_data_clean[[col]])) {
+    
+    # Check if the column is binary (0 and 1 values)
+    unique_values = unique(TV_series_data_clean[[col]])
+    if (length(unique_values) == 2 && all(unique_values %in% c(0, 1))) {
+      # Create a barplot for binary data
+      barplot(table(TV_series_data_clean[[col]]), 
+              main = paste("Fig", fig_number, ": Barplot of", col), 
+              xlab = col, 
+              ylab = "Count", 
+              col = c("red", "green"))
+    } else {
+      # Create a boxplot for continuous numerical data
+      boxplot(TV_series_data_clean[[col]], 
+              main = paste("Fig", fig_number, ": Boxplot of", col), 
+              ylab = col)
+    }
+  }
+  
+  fig_number = fig_number + 1
+}
+
+# Reset plotting parameters to default after the loop
+par(mfrow=c(1, 1))
+
+
+```
+
+
+
+## Interpretation of the plots
+The analysis of the TV-series data reveals several interesting patterns:
+isAdult: The bar plot clearly shows that the number of TV series with an adult rating is significantly smaller than those without. This suggests that adult-themed shows are relatively rare compared to general audience shows.
+
+
+Start Year: The data indicates that significantly more TV series began airing in the early to late 2000s than in the late 1900s, reflecting a negative skew. This is likely because IMDb, which has only been around since 1990, wasn't widely used by showrunners earlier on. As IMDb gained popularity, submitting shows to the platform became a bigger priority.
+
+
+End Year: Similar to the start year, the end year also shows a higher frequency of shows concluding in the 2000s, which follows the same reasoning as the start year trend.
+
+
+Average Rating: The distribution of average ratings is mostly normal but slightly negatively skewed. This suggests that, on average, viewers tend to rate shows positively, as an average rating of 5 would indicate a neutral sentiment.
+
+
+Number of Votes: The number of votes is positively skewed, indicating that most TV shows receive a relatively low number of votes, while a small number of shows attract a large number of votes. This suggests that popularity is not evenly distributed, with a few shows receiving most of the attention.
+
+
+Next, we turn our attention to the genre of TV shows. Since a show can have multiple genre tags, we can't simply plot a single variable. Instead, we use the pivot_longer function to count the percentage of occurrences of each genre across all shows. The percentages in the table below represent how often each genre is tagged in total, rather than how frequently a genre appears for individual TV shows.
+```{r echo = FALSE, warning=FALSE, message=FALSE}
+# Calculate genre counts and percentages
+genre_counts <- TV_series_data_clean %>%
+  select(Genre1, Genre2, Genre3) %>%  
+  pivot_longer(cols = everything(), names_to = "Genre_Type", values_to = "Genre") %>%  
+  drop_na() %>% 
+  count(Genre, sort = TRUE) %>%
+  mutate(percentage = (n / sum(n)) * 100)
+
+
+# Create a more visually appealing plot with ggplot2
+ggplot(genre_counts, aes(x = reorder(Genre, -n), y = n, fill = Genre)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +  # Hide the legend to make it cleaner
+  labs(title = "Fig 18: TV Genre Distribution", x = "Genres", y = "Count") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12), # Rotate and format x-axis labels
+    axis.title = element_text(size = 14, face = "bold"),  # Make axis titles bold
+    plot.title = element_text(size = 16, face = "bold", hjust = 0.5),  # Center title and make it bold
+    panel.grid.major = element_line(color = "gray90"),  # Light grid lines
+    panel.grid.minor = element_blank(), # Remove minor grid lines
+    plot.margin = margin(10, 10, 10, 10)  # Add margins around the plot
+  ) +
+  scale_fill_brewer(palette = "Set3")  # Use a color palette for better aesthetics
+
+```
+As shown in the graph, the most common genres are Comedy and Drama, which are clearly dominant. On the other hand, genres like Western, War, and Musical are much less popular, appearing far less frequently across the data set. This highlights the genre preferences and trends within TV shows.
+
+
+## Data Analysis
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+
+setDT(TV_series_data_clean)
+
+# Convert the binary variable (isAdult) and encoded genre columns to factors if necessary
+TV_series_data_clean[, isAdult := as.factor(isAdult)]  # Make sure isAdult is treated as a factor
+TV_series_data_clean[, Genre1_encoded := as.factor(Genre1_encoded)]
+TV_series_data_clean[, Genre2_encoded := as.factor(Genre2_encoded)]
+TV_series_data_clean[, Genre3_encoded := as.factor(Genre3_encoded)]
+
+# Change averageRating, Genre1_encoded, Genre2_encoded and Genre3_encoded to numeric
+TV_series_data_clean$averageRating <- as.numeric(as.character(TV_series_data_clean$averageRating))
+TV_series_data_clean$Genre1_encoded <- as.numeric(as.character(TV_series_data_clean$Genre1_encoded))
+TV_series_data_clean$Genre2_encoded <- as.numeric(as.character(TV_series_data_clean$Genre2_encoded))
+TV_series_data_clean$Genre3_encoded <- as.numeric(as.character(TV_series_data_clean$Genre3_encoded))
+
+# Logistic regression model
+log_reg <- glm(Renewed ~ isAdult + startYear + endYear + Genre1_encoded + + Genre2_encoded + Genre3_encoded + averageRating + numVotes,
+             data = TV_series_data_clean, 
+             family = binomial)
+
+
+
+
+# Independence
+library(lmtest)
+dwtest(log_reg)
+
+# Multicollinearity  (vif)
+library(car)
+vif(log_reg)
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# Summary of the model
+summary(log_reg)
+vif(log_reg)
+dwtest(log_reg)
+
+```
+
+To explore which variables influence series renewal a logistic regression was performed. 
+First the assumptions of the model are tested. To assess whether the independence assumption holds, a Durbin-Watson test was conducted to detect autocorrelation in the regression residuals. For multicollinearity concerns, a Variance Inflation Factor (VIF) test was performed. The results indicate that startYear and endYear have VIF values greater than 10, suggesting severe multicollinearity. This implies that these variables are highly correlated, and it may have been beneficial to combine them into a single feature. Meanwhile, all other predictors have VIF values below 5, meaning that while some correlation exists between independent variables, it does not reach a level that would severely distort the regression model’s estimates.
+
+The logistic regression results provide valuable insights into the factors that influence the likelihood of a TV series being renewed. The intercept, with an exponentiated value approaching 1, suggests that when all predictors are at their baseline, the probability of renewal is nearly 100%. However, the individual predictors significantly modify this probability, indicating that various factors contribute to renewal decisions.
+  Among categorical variables, isAdult has an odds ratio of 0.969, meaning that adult-rated series have about a 3.1% lower chance of renewal compared to non-adult series. However, this effect is not statistically significant, suggesting that a show being classified as adult content does not meaningfully influence renewal outcomes. Similarly, averageRating, with an odds ratio of 0.995, shows no significant impact on the likelihood of renewal, indicating that a show’s audience rating alone is not a strong predictor of its continuation.
+  For numerical predictors, startYear and endYear play significant roles. StartYear has an odds ratio of 0.632, meaning that each additional year in the start date reduces the probability of renewal by 36.8%, suggesting that older shows are more likely to be canceled. Conversely, endYear has an odds ratio of 1.593, meaning that with each additional year a show remains active, its likelihood of renewal increases by 59.3%, reinforcing that newer or ongoing series have better chances of being renewed.
+  Genre also affects renewal probability. The encoded genre variables—Genre1_encoded (0.978), Genre2_encoded (0.986), and Genre3_encoded (0.975)—all have odds ratios below 1, indicating that certain genres are less likely to be renewed. Among them, Genre1_encoded and Genre3_encoded exhibit stronger negative effects, reducing renewal likelihood by 2.2% and 2.5%, respectively. This suggests that some genres face higher cancellation risks, possibly due to lower audience demand or shifting network priorities.
+  The numVotes variable, with an odds ratio of 1.000034, shows that an increase in audience engagement slightly improves the chances of renewal. While this effect is minimal, it indicates that shows with more votes—likely reflecting larger or more dedicated audiences—are marginally more likely to be renewed.
+  Overall, the analysis highlights that start year, end year, and genre are the most influential factors in determining whether a TV series gets renewed. Older shows face a higher risk of cancellation, while ongoing or newer series have better renewal prospects. Additionally, certain genres appear to have a disadvantage in renewal decisions, while audience engagement through votes has a minor yet positive impact.
+
+
+## Sources
+
+Lee, E. T., & Wang, J. W. (2003). Statistical methods for survival data analysis. In Wiley series in probability and statistics. https://doi.org/10.1002/0471458546
+What’s behind a show renewal. (n.d.). Parrot Analytics. https://www.parrotanalytics.com/insights/whats-behind-a-show-renewal/
